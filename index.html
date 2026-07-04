@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,400;1,600&display=swap" rel="stylesheet">
+    <title>Aya's Portfolio</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #1a1a2e;
+      }
+
+      canvas {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 0;
+      }
+
+      /* ---- SCROLL CONTAINER ---- */
+      #scroll-container {
+        height: 1200vh;
+        position: relative;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .stop {
+        height: 200vh;
+      }
+
+      /* ---- LOADING SCREEN ---- */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #E8EBED;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        opacity: 1;
+        transition: opacity 0.8s ease;
+        pointer-events: all;
+      }
+
+      #loading-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .loading-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-style: italic;
+        font-weight: 600;
+        font-size: 5rem;
+        color: #2C3F70;
+        text-align: center;
+        margin-bottom: 2rem;
+        letter-spacing: 0.01em;
+        line-height: 1.1;
+        position: relative;
+        z-index: 2;
+      }
+
+      .loading-word {
+        display: inline-block;
+      }
+
+      .loading-hint {
+        font-family: 'Georgia', serif;
+        font-size: 0.85rem;
+        color: #8089D2;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-top: 1.2rem;
+        position: relative;
+        z-index: 2;
+      }
+
+      /* ---- PROGRESS BAR ---- */
+      .loading-bar-container {
+        width: 200px;
+        height: 2px;
+        background: rgba(44, 63, 112, 0.15);
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+        z-index: 2;
+      }
+
+      .loading-bar {
+        height: 100%;
+        width: 0%;
+        background: #2C3F70;
+        border-radius: 2px;
+        transition: width 0.3s ease;
+      }
+
+      /* ---- FLOATING SHAPES ---- */
+      .loading-shapes {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .shape {
+        position: absolute;
+        opacity: 0;
+        animation: floatUp 4s ease-in-out infinite;
+      }
+
+      .shape.diamond {
+        width: 40px;
+        height: 40px;
+        background: #2C3F70;
+        clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+        opacity: 0.12;
+      }
+
+      .shape.diamond.small {
+        width: 24px;
+        height: 24px;
+        opacity: 0.08;
+      }
+
+      .shape.diamond.tiny {
+        width: 14px;
+        height: 14px;
+        opacity: 0.06;
+      }
+
+      .shape.triangle {
+        width: 0;
+        height: 0;
+        border-left: 18px solid transparent;
+        border-right: 18px solid transparent;
+        border-bottom: 32px solid #2C3F70;
+        background: transparent;
+        clip-path: none;
+        opacity: 0.1;
+      }
+
+      .shape.triangle.small {
+        border-left-width: 10px;
+        border-right-width: 10px;
+        border-bottom-width: 18px;
+        opacity: 0.07;
+      }
+
+      .shape:nth-child(1) { left: 15%; bottom: -60px; animation-delay: 0s;   animation-duration: 5s; }
+      .shape:nth-child(2) { left: 30%; bottom: -60px; animation-delay: 1.2s; animation-duration: 4.5s; }
+      .shape:nth-child(3) { left: 55%; bottom: -60px; animation-delay: 0.6s; animation-duration: 6s; }
+      .shape:nth-child(4) { left: 72%; bottom: -60px; animation-delay: 2s;   animation-duration: 5.5s; }
+      .shape:nth-child(5) { left: 85%; bottom: -60px; animation-delay: 1.8s; animation-duration: 4s; }
+
+      @keyframes floatUp {
+        0%   { transform: translateY(0) rotate(0deg);      opacity: 0; }
+        15%  { opacity: 0.12; }
+        85%  { opacity: 0.08; }
+        100% { transform: translateY(-110vh) rotate(180deg); opacity: 0; }
+      }
+
+      /* ---- FULL SCREEN OVERLAYS (intro/outro) ---- */
+      .fullscreen-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #E8EBED;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        opacity: 0;
+      }
+
+      #intro-overlay {
+        opacity: 1;
+        pointer-events: none;
+      }
+
+      #outro-overlay {
+        pointer-events: all;
+      }
+
+      /* ---- INTRO TITLE ---- */
+      #intro-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-style: italic;
+        font-weight: 600;
+        font-size: 7rem;
+        color: #2C3F70;
+        text-align: center;
+        margin-bottom: 0.8rem;
+        letter-spacing: 0.01em;
+        line-height: 1.1;
+      }
+
+      .title-word {
+        display: inline-block;
+      }
+
+      .full-name {
+        font-family: 'Georgia', serif;
+        font-style: italic;
+        font-size: 1.6rem !important;
+        color: #2C3F70;
+        letter-spacing: 0.08em;
+        margin-top: 0.2rem;
+        opacity: 0.8;
+      }
+
+      .fullscreen-overlay .subtitle {
+        font-size: 1.1rem;
+        color: #8089D2;
+        margin-top: 0.3rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .intro-tagline {
+        font-family: 'Georgia', serif;
+        font-size: 1.4rem !important;
+        color: #8089D2;
+        text-align: center;
+        margin-top: 0.5rem;
+      }
+
+      /* ---- SCROLL HINT ---- */
+      .scroll-hint {
+        position: absolute;
+        bottom: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .scroll-hint-text {
+        font-family: 'Georgia', serif;
+        font-size: 0.85rem;
+        color: #8089D2;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        opacity: 0.8;
+      }
+
+      .scroll-arrow {
+        font-size: 1.8rem;
+        color: #2C3F70;
+        animation: bounce 1.6s ease-in-out infinite;
+      }
+
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0);     opacity: 1; }
+        50%       { transform: translateY(10px);  opacity: 0.4; }
+      }
+
+      /* ---- OUTRO ---- */
+      #outro-overlay h1 {
+        font-family: 'Cormorant Garamond', serif;
+        font-style: italic;
+        font-weight: 600;
+        font-size: 7rem;
+        color: #2C3F70;
+        text-align: center;
+        margin-bottom: 0.8rem;
+        letter-spacing: 0.01em;
+        line-height: 1.1;
+      }
+
+      #outro-overlay p {
+        font-family: 'Georgia', serif;
+        font-size: 1.4rem;
+        color: #8089D2;
+        text-align: center;
+        max-width: 600px;
+        line-height: 1.8;
+        margin-top: 0.5rem;
+      }
+
+      .outro-name {
+        font-family: 'Georgia', serif;
+        font-style: italic;
+        font-size: 1.4rem !important;
+        color: #2C3F70;
+        letter-spacing: 0.08em;
+        margin-top: 0.5rem;
+        opacity: 0.8;
+      }
+
+      /* ---- CONTACT LINKS ---- */
+      .contact-links {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .contact-links a {
+        font-family: 'Georgia', serif;
+        font-size: 1rem;
+        color: #2C3F70;
+        text-decoration: none;
+        border-bottom: 1px solid #8089D2;
+        padding-bottom: 2px;
+        transition: color 0.3s;
+      }
+
+      .contact-links a:hover {
+        color: #8089D2;
+      }
+
+      /* ---- FROSTED GLASS PANELS ---- */
+      .glass-panel {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 420px;
+        max-width: 28vw;
+        background: rgba(232, 235, 237, 0.65);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 20px;
+        padding: 2.8rem;
+        z-index: 10;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .glass-panel.left  { left: 3%; }
+      .glass-panel.right { right: 3%; }
+
+      .glass-panel h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-style: italic;
+        font-size: 1.8rem;
+        color: #2C3F70;
+        margin-bottom: 0.8rem;
+        letter-spacing: 0.02em;
+      }
+
+      .glass-panel h3 {
+        font-family: 'Georgia', serif;
+        font-size: 0.85rem;
+        color: #2C3F70;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        opacity: 0.7;
+      }
+
+      .glass-panel p {
+        font-family: 'Georgia', serif;
+        font-size: 1rem;
+        color: #2C3F70;
+        line-height: 1.9;
+        margin-bottom: 0.8rem;
+      }
+
+      .glass-panel .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: 1rem;
+      }
+
+      .glass-panel .tag {
+        font-family: 'Georgia', serif;
+        font-size: 0.78rem;
+        color: #2C3F70;
+        border: 1px solid #2C3F70;
+        border-radius: 20px;
+        padding: 0.2rem 0.7rem;
+        opacity: 0.7;
+      }
+
+      .panel-header {
+        background: rgba(200, 212, 229, 0.55);
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        margin: -0.5rem -0.5rem 1rem -0.5rem;
+      }
+
+      .panel-header h3 { margin-bottom: 0.4rem; }
+      .panel-header h2 { margin-bottom: 0; }
+
+      /* ---- VIDEO PANEL ---- */
+      #seed-video-panel {
+        width: 580px;
+        max-width: 38vw;
+        pointer-events: all;
+        z-index: 20;
+        background: rgba(232, 235, 237, 0.75);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+      }
+
+      #seed-video-panel .video-wrapper {
+        pointer-events: none;
+      }
+
+      .video-wrapper {
+        width: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+        margin: 0.5rem 0 1rem 0;
+        background: #2C3F70;
+      }
+
+      .video-wrapper video {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 12px;
+      }
+
+      .watch-link {
+        display: inline-block;
+        font-family: 'Georgia', serif;
+        font-size: 0.9rem;
+        color: #2C3F70;
+        text-decoration: none;
+        border-bottom: 1px solid #8089D2;
+        padding-bottom: 2px;
+        margin-top: 0.5rem;
+        transition: color 0.3s;
+        pointer-events: all;
+        position: relative;
+        z-index: 30;
+        cursor: pointer;
+      }
+
+      .watch-link:hover {
+        color: #8089D2;
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <!-- ---- LOADING SCREEN ---- -->
+    <div id="loading-screen">
+      <div class="loading-shapes">
+        <div class="shape diamond"></div>
+        <div class="shape triangle"></div>
+        <div class="shape diamond small"></div>
+        <div class="shape triangle small"></div>
+        <div class="shape diamond tiny"></div>
+      </div>
+      <h1 class="loading-title">
+        <span class="loading-word" style="opacity:0">Welcome</span>
+      </h1>
+      <div class="loading-bar-container">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <p class="loading-hint" style="opacity:0">Preparing your journey...</p>
+    </div>
+
+    <!-- ---- INTRO OVERLAY ---- -->
+    <div class="fullscreen-overlay" id="intro-overlay">
+      <h1 id="intro-title">
+        <span class="title-word" style="opacity:0">Aya's</span>
+        <span class="title-word" style="opacity:0"> Portfolio</span>
+      </h1>
+      <p class="subtitle" style="opacity:0">Aya Sinjab — Creative Developer & 3D Artist</p>
+      <p class="intro-tagline" style="opacity:0">Follow me through a journey of my portfolio</p>
+      <div class="scroll-hint" style="opacity:0">
+        <span class="scroll-hint-text">Scroll to explore</span>
+        <div class="scroll-arrow">&#8595;</div>
+      </div>
+    </div>
+
+    <!-- ---- CHARACTER STOP — LEFT PANEL ---- -->
+    <div class="glass-panel left" id="char-left">
+      <div class="panel-header">
+        <h3>About Me</h3>
+        <h2>Hi, I'm Aya</h2>
+      </div>
+      <p>I'm a Civil Engineering in Media Technology and AI student at Linköping University, with a passion for creative development, 3D art, and interactive media.</p>
+      <p>I love building things that sit at the intersection of art and code, whether that's an interactive 3D portfolio, an animated short film, or an AI-powered tool.</p>
+    </div>
+
+    <!-- ---- CHARACTER STOP — RIGHT PANEL ---- -->
+    <div class="glass-panel right" id="char-right">
+      <div class="panel-header">
+        <h3>Background</h3>
+        <h2>What I Do</h2>
+      </div>
+      <p>My work spans 3D modelling and animation in Blender, real-time rendering in Three.js, and full-stack development.</p>
+      <p>Currently in my fourth year of a five-year Civil Engineering programme, with a specialisation in Media Technology — combining engineering rigour with creative and technical depth across 3D, AI, and interactive media.</p>
+      <div class="tags">
+        <span class="tag">Three.js</span>
+        <span class="tag">Blender</span>
+        <span class="tag">GSAP</span>
+        <span class="tag">React</span>
+        <span class="tag">AI/ML</span>
+      </div>
+    </div>
+
+    <!-- ---- SEED OF HOPE — LEFT PANEL ---- -->
+    <div class="glass-panel left" id="seed-panel">
+      <div class="panel-header">
+        <h3>Animated Short Film</h3>
+        <h2>Seed of Hope</h2>
+      </div>
+      <p>A Blender animated short about robots saving a dying planet by planting glass-encased plants — a story about hope, nature, and technology working in harmony.</p>
+      <p>Developed collaboratively with a team, contributing to modelling, animation, lighting, and rendering — built entirely within Blender from concept to final output.</p>
+      <div class="tags">
+        <span class="tag">Blender</span>
+        <span class="tag">3D Animation</span>
+        <span class="tag">Team Project</span>
+        <span class="tag">Storytelling</span>
+      </div>
+    </div>
+
+    <!-- ---- SEED OF HOPE — VIDEO PANEL ---- -->
+    <div class="glass-panel right" id="seed-video-panel">
+      <div class="panel-header">
+        <h3>Preview</h3>
+        <h2>Watch the Film</h2>
+      </div>
+      <div class="video-wrapper">
+        <video
+          id="seed-preview-video"
+          src="/SeedOfHopePreview.mp4.mp4"
+          muted
+          loop
+          playsinline
+          preload="auto"
+        ></video>
+      </div>
+      <a class="watch-link" href="/SeedOfHope.mp4" target="_blank">
+        ↗ Watch full film
+      </a>
+    </div>
+
+    <!-- ---- HUMLY — RIGHT PANEL ---- -->
+    <div class="glass-panel right" id="humly-panel">
+      <div class="panel-header">
+        <h3>Industry Experience</h3>
+        <h2>Humly Solutions</h2>
+      </div>
+      <p>Worked on localisation at Humly Solutions AB, translating their entire web interface into 31 languages to support global expansion.</p>
+      <p>Beyond translation, I verified that every language variation rendered correctly in the UI — ensuring no text overflowed, broke layouts, or caused visual inconsistencies across the platform.</p>
+      <div class="tags">
+        <span class="tag">Localisation</span>
+        <span class="tag">31 Languages</span>
+        <span class="tag">UI Verification</span>
+        <span class="tag">Web</span>
+      </div>
+    </div>
+
+    <!-- ---- THESIS — LEFT PANEL ---- -->
+    <div class="glass-panel left" id="thesis-left">
+      <div class="panel-header">
+        <h3>Academic Research</h3>
+        <h2>AI Chat Assistant</h2>
+      </div>
+      <p>Bachelor's thesis (TNM094) focused on designing and developing an AI-powered chat assistant to help students with academic writing in their coursework.</p>
+      <p>Built using a RAG pipeline integrating large language models with a custom knowledge base — combining backend, frontend, and database development to deliver contextually accurate academic support.</p>
+    </div>
+
+    <!-- ---- THESIS — RIGHT PANEL ---- -->
+    <div class="glass-panel right" id="thesis-right">
+      <div class="panel-header">
+        <h3>Methods & Tools</h3>
+        <h2>Research Approach</h2>
+      </div>
+      <p>Conducted user studies using Figma prototypes to iteratively design the assistant's interface, ensuring it felt intuitive and appropriate for an academic context.</p>
+      <div class="tags">
+        <span class="tag">React</span>
+        <span class="tag">Python</span>
+        <span class="tag">RAG Pipeline</span>
+        <span class="tag">LLMs</span>
+        <span class="tag">Figma</span>
+        <span class="tag">TNM094</span>
+      </div>
+    </div>
+
+    <!-- ---- OUTRO OVERLAY ---- -->
+    <div class="fullscreen-overlay" id="outro-overlay">
+      <h1>
+        <span class="outro-word" style="opacity:0">Thanks</span>
+        <span class="outro-word" style="opacity:0"> for</span>
+        <span class="outro-word" style="opacity:0"> the</span>
+        <span class="outro-word" style="opacity:0"> journey</span>
+      </h1>
+      <p class="outro-name" style="opacity:0">— Aya Sinjab</p>
+      <p class="outro-sub" style="opacity:0">I'm always open to new opportunities, collaborations, and creative projects. Feel free to reach out!</p>
+      <div class="contact-links outro-links" style="opacity:0">
+        <a href="mailto:sinjabaya@gmail.com">Email</a>
+        <a href="https://github.com/AyaSinjab" target="_blank">GitHub</a>
+        <a href="https://linkedin.com/in/yourusername" target="_blank">LinkedIn</a>
+      </div>
+    </div>
+
+    <!-- ---- SCROLL CONTAINER ---- -->
+    <div id="scroll-container">
+      <section class="stop" data-stop="0"></section>
+      <section class="stop" data-stop="1"></section>
+      <section class="stop" data-stop="2"></section>
+      <section class="stop" data-stop="3"></section>
+      <section class="stop" data-stop="4"></section>
+      <section class="stop" data-stop="5"></section>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
