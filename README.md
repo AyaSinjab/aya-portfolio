@@ -4,7 +4,7 @@ A cinematic 3D portfolio built with Three.js, featuring a scroll-driven
 camera journey through a low-poly floating island world. Each island 
 represents a project, guiding visitors through my work as they scroll.
 
-🌐 **Live site:** [aya-portfolio.vercel.app](https://aya-portfolio.vercel.app)
+🌐 **Live site:** [aya-portfolio.vercel.app](https://aya-portfolio-one.vercel.app/)
 
 ---
 
