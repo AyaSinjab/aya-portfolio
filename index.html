@@ -255,7 +255,7 @@
 
       .scroll-hint-text {
         font-family: 'Georgia', serif;
-        font-size: 0.85rem;
+        font-size: 1rem;
         color: #8089D2;
         letter-spacing: 0.12em;
         text-transform: uppercase;
@@ -263,9 +263,116 @@
       }
 
       .scroll-arrow {
-        font-size: 1.8rem;
+        font-size: 2.4rem;
         color: #2C3F70;
         animation: bounce 1.6s ease-in-out infinite;
+      }
+
+      /* ---- PERSISTENT SCROLL INDICATOR ---- */
+      #scroll-indicator {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+        z-index: 15;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s ease;
+      }
+
+      #scroll-indicator-text {
+        font-family: 'Georgia', serif;
+        font-size: 0.75rem;
+        color: #2C3F70;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        opacity: 0.6;
+      }
+
+      #scroll-indicator-arrow {
+        font-size: 1.4rem;
+        color: #2C3F70;
+        opacity: 0.6;
+        animation: bounce 1.6s ease-in-out infinite;
+      }
+
+      /* ---- VIDEO LIGHTBOX ---- */
+      #video-lightbox {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(20, 20, 40, 0.95);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+      }
+
+      #video-lightbox.active {
+        opacity: 1;
+        pointer-events: all;
+      }
+
+      #lightbox-video {
+        width: 85vw;
+        max-width: 1200px;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      }
+
+      #lightbox-close {
+        position: absolute;
+        top: 1.5rem;
+        right: 2rem;
+        font-family: 'Georgia', serif;
+        font-size: 2rem;
+        color: #E8EBED;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+        background: none;
+        border: none;
+        line-height: 1;
+      }
+
+      #lightbox-close:hover {
+        opacity: 1;
+      }
+
+      /* Make the preview video show a pointer cursor to hint it's clickable */
+      #seed-preview-video {
+        cursor: pointer;
+      }
+
+      /* Expand hint overlay on the preview video */
+      .video-expand-hint {
+        position: absolute;
+        bottom: 0.6rem;
+        right: 0.6rem;
+        font-family: 'Georgia', serif;
+        font-size: 0.7rem;
+        color: #E8EBED;
+        background: rgba(44, 63, 112, 0.7);
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        letter-spacing: 0.05em;
+      }
+
+      .video-wrapper:hover .video-expand-hint {
+        opacity: 1;
       }
 
       @keyframes bounce {
@@ -332,14 +439,14 @@
         position: fixed;
         top: 50%;
         transform: translateY(-50%);
-        width: 420px;
-        max-width: 28vw;
-        background: rgba(232, 235, 237, 0.65);
+        width: 520px;
+        max-width: 35vw;
+        background: rgba(232, 235, 237, 0.92);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.5);
         border-radius: 20px;
-        padding: 2.8rem;
+        padding: 3rem;
         z-index: 10;
         opacity: 0;
         pointer-events: none;
@@ -404,17 +511,18 @@
 
       /* ---- VIDEO PANEL ---- */
       #seed-video-panel {
-        width: 580px;
-        max-width: 38vw;
+        width: 620px;
+        max-width: 42vw;
         pointer-events: all;
         z-index: 20;
-        background: rgba(232, 235, 237, 0.75);
+        background: rgba(232, 235, 237, 0.95);
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
       }
 
       #seed-video-panel .video-wrapper {
-        pointer-events: none;
+        pointer-events: all;
+        position: relative;
       }
 
       .video-wrapper {
@@ -526,6 +634,7 @@
           playsinline
           preload="auto"
         ></video>
+        <span class="video-expand-hint">⛶ Expand</span>
       </div>
     </div>
 
@@ -588,7 +697,21 @@
         <a href="https://linkedin.com/in/yourusername" target="_blank">LinkedIn</a>
       </div>
     </div>
-
+    <!-- ---- PERSISTENT SCROLL HINT ---- -->
+    <div id="scroll-indicator">
+      <span id="scroll-indicator-text">Scroll to explore</span>
+      <div id="scroll-indicator-arrow">&#8595;</div>
+    </div>
+    <!-- ---- VIDEO LIGHTBOX ---- -->
+    <div id="video-lightbox">
+      <button id="lightbox-close">✕</button>
+      <video
+        id="lightbox-video"
+        src="/SeedOfHopePreview.mp4.mp4"
+        controls
+        playsinline
+      ></video>
+    </div>
     <!-- ---- SCROLL CONTAINER ---- -->
     <div id="scroll-container">
       <section class="stop" data-stop="0"></section>

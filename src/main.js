@@ -290,7 +290,7 @@ window.addEventListener('resize', () => {
 function fadePanel(id, trigger, start, peak, end) {
   const el = document.getElementById(id)
   gsap.timeline({
-    scrollTrigger: { trigger, start, end, scrub: 1 }
+    scrollTrigger: { trigger, start, end, scrub: 2 } // scrub: 2 means the animation lags 2 seconds behind the scroll position
   })
   .to(el, { opacity: 1, duration: peak })
   .to(el, { opacity: 0, duration: 1 - peak })
@@ -308,19 +308,19 @@ gsap.to('#intro-overlay', {
 })
 
 // Stop 1 — Character
-fadePanel('char-left',  '.stop:nth-child(2)', 'top 80%', 0.6, 'bottom top')
-fadePanel('char-right', '.stop:nth-child(2)', 'top 80%', 0.6, 'bottom top')
+fadePanel('char-left',  '.stop:nth-child(2)', 'top 80%', 0.7, 'bottom top')
+fadePanel('char-right', '.stop:nth-child(2)', 'top 80%', 0.7, 'bottom top')
 
 // Stop 2 — Seed of Hope
-fadePanel('seed-panel',       '.stop:nth-child(3)', 'top 80%', 0.7, 'bottom top')
-fadePanel('seed-video-panel', '.stop:nth-child(3)', 'top 80%', 0.7, 'bottom top')
+fadePanel('seed-panel',       '.stop:nth-child(3)', 'top 80%', 0.75, 'bottom top')
+fadePanel('seed-video-panel', '.stop:nth-child(3)', 'top 80%', 0.75, 'bottom top')
 
 // Stop 3 — Humly
-fadePanel('humly-panel', '.stop:nth-child(4)', 'top 80%', 0.7, 'bottom top')
+fadePanel('humly-panel', '.stop:nth-child(4)', 'top 80%', 0.75, 'bottom top')
 
 // Stop 4 — Thesis
-fadePanel('thesis-left',  '.stop:nth-child(5)', 'top 80%', 0.6, '80% top')
-fadePanel('thesis-right', '.stop:nth-child(5)', 'top 80%', 0.6, '80% top')
+fadePanel('thesis-left',  '.stop:nth-child(5)', 'top 80%', 0.7, '80% top')
+fadePanel('thesis-right', '.stop:nth-child(5)', 'top 80%', 0.7, '80% top')
 
 // Video play/pause tied to scroll visibility
 const seedVideo = document.getElementById('seed-preview-video')
@@ -340,6 +340,68 @@ ScrollTrigger.create({
   start: 'top bottom',
   onEnter:     () => playOutroAnimation(),
   onLeaveBack: () => resetOutro(),
+})
+
+// ---- PERSISTENT SCROLL INDICATOR ----
+const scrollIndicator = document.getElementById('scroll-indicator')
+
+// Fades in after intro overlay fades out, fades out at the last stop
+ScrollTrigger.create({
+  trigger: '.stop:nth-child(1)',
+  start: 'bottom 80%',
+  end: 'bottom top',
+  onEnter: () => gsap.to(scrollIndicator, { opacity: 1, duration: 0.8 }),
+  onLeaveBack: () => gsap.to(scrollIndicator, { opacity: 0, duration: 0.5 }),
+})
+
+// Hide it when reaching the outro
+ScrollTrigger.create({
+  trigger: '.stop:nth-child(6)',
+  start: 'top bottom',
+  onEnter: () => gsap.to(scrollIndicator, { opacity: 0, duration: 0.8 }),
+  onLeaveBack: () => gsap.to(scrollIndicator, { opacity: 1, duration: 0.5 }),
+})
+
+// ---- VIDEO LIGHTBOX ----
+const lightbox = document.getElementById('video-lightbox')
+const lightboxVideo = document.getElementById('lightbox-video')
+const lightboxClose = document.getElementById('lightbox-close')
+const previewVideo = document.getElementById('seed-preview-video')
+
+// Open lightbox when preview video is clicked
+previewVideo.addEventListener('click', () => {
+  lightbox.classList.add('active')
+  lightboxVideo.currentTime = 0
+  lightboxVideo.play()
+  document.body.style.overflow = 'hidden' // prevent scroll while lightbox open
+})
+
+// Close lightbox on close button
+lightboxClose.addEventListener('click', () => {
+  lightbox.classList.remove('active')
+  lightboxVideo.pause()
+  lightboxVideo.currentTime = 0
+  document.body.style.overflow = '' // restore scroll
+})
+
+// Close lightbox on background click
+lightbox.addEventListener('click', (e) => {
+  if (e.target === lightbox) {
+    lightbox.classList.remove('active')
+    lightboxVideo.pause()
+    lightboxVideo.currentTime = 0
+    document.body.style.overflow = ''
+  }
+})
+
+// Close lightbox on Escape key
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+    lightbox.classList.remove('active')
+    lightboxVideo.pause()
+    lightboxVideo.currentTime = 0
+    document.body.style.overflow = ''
+  }
 })
 
 function playOutroAnimation() {
