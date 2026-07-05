@@ -361,7 +361,63 @@ ScrollTrigger.create({
   onEnter: () => gsap.to(scrollIndicator, { opacity: 0, duration: 0.8 }),
   onLeaveBack: () => gsap.to(scrollIndicator, { opacity: 1, duration: 0.5 }),
 })
+// ---- NAVIGATION DOTS ----
+const navDots = document.getElementById('nav-dots')
+const dots = document.querySelectorAll('.nav-dot')
 
+// Show nav dots after intro fades out
+ScrollTrigger.create({
+  trigger: '.stop:nth-child(1)',
+  start: 'bottom 80%',
+  onEnter:     () => navDots.classList.add('visible'),
+  onLeaveBack: () => navDots.classList.remove('visible'),
+})
+
+// Hide nav dots at outro
+ScrollTrigger.create({
+  trigger: '.stop:nth-child(6)',
+  start: 'top bottom',
+  onEnter:     () => navDots.classList.remove('visible'),
+  onLeaveBack: () => navDots.classList.add('visible'),
+})
+
+// Click a dot to scroll to that stop
+dots.forEach((dot) => {
+  dot.addEventListener('click', () => {
+    const stopIndex = parseInt(dot.dataset.stop)
+    const totalScroll = document.documentElement.scrollHeight - window.innerHeight
+    const targetScroll = (stopIndex / 5) * totalScroll
+
+    window.scrollTo({
+      top: targetScroll,
+      behavior: 'smooth'
+    })
+  })
+})
+
+const navLabels = ['Intro', 'About Me', 'Seed of Hope', 'Humly', 'Thesis']
+const navCurrentLabel = document.getElementById('nav-current-label')
+
+ScrollTrigger.create({
+  trigger: '#scroll-container',
+  start: 'top top',
+  end: 'bottom bottom',
+  scrub: true,
+  onUpdate: (self) => {
+    const totalScroll = document.documentElement.scrollHeight - window.innerHeight
+    const scrolled = self.progress * totalScroll
+    const stopHeight = totalScroll / 5
+
+    let activeIndex = Math.floor(scrolled / stopHeight)
+    activeIndex = Math.min(activeIndex, 4)
+
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === activeIndex)
+    })
+
+    navCurrentLabel.textContent = navLabels[activeIndex]
+  }
+})
 // ---- VIDEO LIGHTBOX ----
 const lightbox = document.getElementById('video-lightbox')
 const lightboxVideo = document.getElementById('lightbox-video')
@@ -403,7 +459,6 @@ window.addEventListener('keydown', (e) => {
     document.body.style.overflow = ''
   }
 })
-
 function playOutroAnimation() {
   const words     = document.querySelectorAll('.outro-word')
   const outroName = document.querySelector('.outro-name')
