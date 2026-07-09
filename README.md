@@ -50,6 +50,7 @@ with React, Python, LLMs, and Figma user studies.
 
 ## Project Structure
 
+```
 portfolio-3d/
 ├── public/
 │   ├── models/          # GLB assets (islands, character, platform)
@@ -58,7 +59,7 @@ portfolio-3d/
 │   └── main.js          # Three.js scene, scroll camera, UI animations
 ├── index.html           # HTML structure and CSS styles
 └── package.json
-
+```
 ---
 
 ## Running Locally
